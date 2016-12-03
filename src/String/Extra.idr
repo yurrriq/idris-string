@@ -194,9 +194,9 @@ ellipsis : (howLong : Nat) -> String ->
            String
 ellipsis howLong = ellipsisWith howLong "..."
 
-||| Given a string longer than `howLong`, truncate it and append three dots such
-||| that the resulting string is exactly `howLong` in length.
-||| Return the string if its length is less than or equal to `howLong`.
+||| Truncate a string and append three dots, such that the resulting string is
+||| at most `howLong + 3` in length. Return the string if its length is less
+||| than or equal to `howLong`.
 |||
 ||| Unlike `ellipsis`, do *not* produce unfinished words, instead, collect as
 ||| many complete words as meet the length constraint.
@@ -205,43 +205,31 @@ ellipsis howLong = ellipsisWith howLong "..."
 ||| truncated string.
 |||
 ||| ```idris example
-||| softEllipsis 5 "Hello, World" == "Hello..."
+||| softEllipsis 5 "Hello, World"
 ||| ```
 ||| ```idris example
-||| softEllipsis 8 "Hello, World" == "Hello..."
+||| softEllipsis 8 "Hello, World"
 ||| ```
 ||| ```idris example
-||| softEllipsis 15 "Hello, cruel world" == "Hello, cruel..."
+||| softEllipsis 15 "Hello, cruel world"
 ||| ```
 ||| ```idris example
-||| softEllipsis 10 "Hello" == "Hello"
+||| softEllipsis 10 "Hello"
 ||| ```
 |||
 ||| @ howLong maximum length of the resulting string
-||| @ smaller proof that 3 is less than or equal to `howLong`
-softEllipsis : (howLong : Nat) -> String ->
-               {auto smaller : LTE 3 howLong} ->
-               String
-{-
+softEllipsis : (howLong : Nat) -> String -> String
 softEllipsis howLong string =
-  if length string <= howLong
-     then string
-     else go (howLong - 3) (0, []) (words string)
+    if length string <= howLong
+       then string
+       else fromMaybe "" $
+            (flip (++) "...") . dropTrailing <$>
+            head' (softBreak howLong string)
   where
-    pred : Char -> Bool
-    pred c = isSpace c || '.' == c || ',' == c || ';' == c || ':' == c
-    go : Nat -> (Nat, List String) -> List String -> String
-    go max (n, ys) []
-       = unwords (reverse ys) ++ "..."
-    go max (n, ys) [x]
-       = let x' = pack (reverse (dropWhile (pred) (reverse (unpack x)))) in
-             ?rhs
-    go max (n, ys) (x :: xs)
-       = let m = length x in
-             if n + m <= max
-                then go max (n + m, x :: ys) xs
-                else go max (n, ys) []
--}
+    p : Char -> Bool
+    p c = isSpace c || '.' == c || ',' == c || ';' == c || ':' == c
+    dropTrailing : String -> String
+    dropTrailing = reverse . snd . span p . reverse
 
 -- TODO: Consider implementing stripTags.
 {-
