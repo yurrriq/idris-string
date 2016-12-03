@@ -15,8 +15,6 @@ import Prelude.Strings
 
 -- -------------------------------------------------------------- [ Formatting ]
 
--- NOTE: This is a bit like Clojure's cond->.
-syntax "cond$" [x] [b] [f] = if b then x else f x
 
 ||| Trim the whitespace of both sides of the string and compress repeated
 ||| whitespace internally to a single character.
@@ -25,12 +23,13 @@ syntax "cond$" [x] [b] [f] = if b then x else f x
 ||| clean " The   quick brown   fox    "
 ||| ```
 clean : String -> String
-clean str = trim (go str)
+clean = trim . go
   where
-    go xs with (strM xs)
-      go "" | StrNil = ""
-      go (strCons x xs) | StrCons _ _
-         = strCons x (assert_total (clean (cond$ xs (isSpace x) ltrim)))
+    go : String -> String
+    go str with (strM str)
+      go ""             | StrNil      = ""
+      go (strCons c cs) | StrCons _ _ =
+          strCons c $ assert_total $ go $ if isSpace c then ltrim cs else cs
 
 ||| Remove surrounding strings from another string.
 |||
