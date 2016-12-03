@@ -13,8 +13,68 @@ import Prelude.Strings
 
 %access export
 
--- -------------------------------------------------------------- [ Formatting ]
+-- --------------------------------------------------------------- [ Splitting ]
 
+private
+dropLeft : Nat -> String -> String
+dropLeft n = pack . drop n . unpack
+
+private
+breaker : Nat -> String -> List String -> List String
+breaker width "" acc     = reverse acc
+breaker width string acc = breaker width
+                                   (dropLeft width string)
+                                   (substr 0 width string :: acc)
+
+||| Break a string into a list of strings of at most `width` characters.
+|||
+||| ```idris example
+||| break 10 "The quick brown fox"
+||| ```
+||| ```idris example
+||| break 2 ""
+||| ```
+|||
+||| @ width the maximum length of the resulting strings
+break : (width : Nat) -> String -> List String
+break Z string     = [string]
+break _ ""         = [""]
+break width string = breaker width string []
+
+||| Break a string into a list of strings of at most `width` characters, without
+||| chopping words.
+|||
+||| ```idris example
+||| softBreak 6 "The quick brown fox"
+||| ```
+|||
+||| @ width the maximum length of the resulting strings
+softBreak : (width : Nat) -> String -> List String
+softBreak Z _          = []
+softBreak width string = go Nothing [] string
+  where
+  go : Maybe String -> List String -> String -> List String
+  go (Just ps) acc ""  = reverse (ps :: acc)
+  go Nothing acc ""    = reverse acc
+  go Nothing acc str   =
+      let (w1, r1) = break isSpace str
+          (s1, r2) = span isSpace r1
+          str2 = w1 ++ s1 in
+          if length str2 >= width
+             then go Nothing (str2 :: acc) r2
+             else go (Just str2) acc r2
+  go (Just ps) acc str =
+      let (w1, r1) = break isSpace str
+          (s1, r2) = span isSpace r1
+          str2 = w1 ++ s1 in
+          if length str2 >= width
+             then go Nothing (str2 :: ps :: acc) r2
+             else let str3 = ps ++ str2 in
+                      if length str3 >= width
+                         then go (Just str2) (ps :: acc) r2
+                         else go (Just str3) acc r2
+
+-- -------------------------------------------------------------- [ Formatting ]
 
 ||| Trim the whitespace of both sides of the string and compress repeated
 ||| whitespace internally to a single character.
