@@ -1,0 +1,15 @@
+package string
+
+sourcedir  = src
+modules    = String.Extra
+-- TODO: tests
+
+brief      = "A port of Elm's string-extra package to Idris."
+-- TODO: version
+-- TODO: readme
+license    = BSD-3
+author     = Eric Bailey
+
+homepage   = https://github.com/yurrriq/idris-string
+sourceloc  = git://git@github.com:yurrriq/idris-string.git
+bugtracker = https://github.com/yurrriq/idris-logic/issues

@@ -6,6 +6,7 @@
 -- License     : BSD-3
 -- Link        : https://github.com/elm-community/string-extra
 -- --------------------------------------------------------------------- [ EOH ]
+||| String helper functions for Idris, inspired by Elm's string-extra.
 module String.Extra
 
 import Prelude.Strings
